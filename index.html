@@ -71,12 +71,12 @@
     <div class="filter-section">
         <div class="filter-left">
             <input type="text" id="searchInput" placeholder="搜索标题/ID..." oninput="debouncedFilter()">
-            <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">一级类目(全部)</option></select>
+            
+            <!-- 保留：二级类目 -->
             <select id="l2Filter" onchange="updateL3(); applyFilters()"><option value="">二级类目(全部)</option></select>
+            
             <select id="l3Filter" onchange="updateL4(); applyFilters()"><option value="">三级类目(全部)</option></select>
             <select id="l4Filter" onchange="applyFilters()"><option value="">四级类目(全部)</option></select>
-            <select id="pFilter" onchange="applyFilters()"><option value="">P0/P1(全部)</option><option value="P0">P0</option><option value="P1">P1</option></select>
-            <select id="tagFilter" onchange="applyFilters()"><option value="">特殊标签(全部)</option></select>
 
             <!-- 新增：Pool Tag 筛选 -->
             <select id="poolTagFilter" onchange="applyFilters()">
@@ -92,13 +92,14 @@
                 <option value="倒算价">倒算价</option>
             </select>
 
+            <!-- 目标价格段：从低到高（已修改） -->
             <select id="targetPriceFilter" onchange="applyFilters()">
                 <option value="">目标价格段(全部)</option>
-                <option value="50+">50+</option>
-                <option value="20-50">20-50</option>
-                <option value="10-20">10-20</option>
-                <option value="5-10">5-10</option>
                 <option value="0-5">0-5</option>
+                <option value="5-10">5-10</option>
+                <option value="10-20">10-20</option>
+                <option value="20-50">20-50</option>
+                <option value="50+">50+</option>
             </select>
             <select id="highPriceFilter" onchange="applyFilters()">
                 <option value="">是否高价品(全部)</option>
@@ -238,16 +239,13 @@
 
     function applyFilters() {
         const q = document.getElementById('searchInput').value.toLowerCase();
-        const l1 = document.getElementById('l1Filter').value, 
-              l2 = document.getElementById('l2Filter').value,
+        const l2 = document.getElementById('l2Filter').value,
               l3 = document.getElementById('l3Filter').value,
               l4 = document.getElementById('l4Filter').value;
-        const p = document.getElementById('pFilter').value, 
-              tag = document.getElementById('tagFilter').value;
         const targetPrice = document.getElementById('targetPriceFilter').value;
         const highPrice = document.getElementById('highPriceFilter').value;
-        const poolTag = document.getElementById('poolTagFilter').value;        // 新增
-        const priceSource = document.getElementById('priceSourceFilter').value; // 新增
+        const poolTag = document.getElementById('poolTagFilter').value;
+        const priceSource = document.getElementById('priceSourceFilter').value;
         const min = parseFloat(document.getElementById('minPrice').value) || 0, 
               max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         
@@ -257,30 +255,27 @@
             let targetPriceMatch = true;
             if (targetPrice) {
                 switch(targetPrice) {
-                    case "50+": targetPriceMatch = i.price >= 50; break;
-                    case "20-50": targetPriceMatch = i.price >=20 && i.price<50; break;
-                    case "10-20": targetPriceMatch = i.price >=10 && i.price<20; break;
-                    case "5-10": targetPriceMatch = i.price >=5 && i.price<10; break;
                     case "0-5": targetPriceMatch = i.price >=0 && i.price<5; break;
+                    case "5-10": targetPriceMatch = i.price >=5 && i.price<10; break;
+                    case "10-20": targetPriceMatch = i.price >=10 && i.price<20; break;
+                    case "20-50": targetPriceMatch = i.price >=20 && i.price<50; break;
+                    case "50+": targetPriceMatch = i.price >= 50; break;
                 }
             }
 
             const highPriceMatch = !highPrice || i.isHighPrice === highPrice;
-            const poolTagMatch = !poolTag || i.poolTag === poolTag;          // 新增
-            const priceSourceMatch = !priceSource || i.priceSource === priceSource; // 新增
+            const poolTagMatch = !poolTag || i.poolTag === poolTag;
+            const priceSourceMatch = !priceSource || i.priceSource === priceSource;
 
             return (i.title.toLowerCase().includes(q) || i.inviteId.toLowerCase().includes(q)) &&
-                   (!l1 || i.l1 === l1) && 
-                   (!l2 || i.l2 === l2) && 
+                   (!l2 || i.l2 === l2) &&
                    (!l3 || i.l3 === l3) &&
                    (!l4 || i.l4 === l4) &&
-                   (!p || i.judge === p) && 
-                   (!tag || i.specialTag === tag) && 
                    (i.price >= min && i.price <= max) &&
                    targetPriceMatch &&
                    highPriceMatch &&
-                   poolTagMatch &&        // 新增
-                   priceSourceMatch;     // 新增
+                   poolTagMatch &&
+                   priceSourceMatch;
         });
         
         const sort = document.getElementById('sortOrder').value;
@@ -292,8 +287,12 @@
     }
 
     function initFilters() {
-        [...new Set(products.map(p => p[5]))].forEach(v => { if(v) document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
-        [...new Set(products.map(p => p[14]?.trim()).filter(v => v))].forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
+        // 初始化二级类目
+        const l2Values = [...new Set(products.map(p => mapData(p).l2).filter(v => v))];
+        l2Values.forEach(v => {
+            document.getElementById('l2Filter').innerHTML += `<option value="${v}">${v}</option>`;
+        });
+
         const highPriceValues = [...new Set(products.map(p => mapData(p).isHighPrice).filter(v => v))];
         highPriceValues.forEach(v => {
             document.getElementById('highPriceFilter').innerHTML += `<option value="${v}">${v}</option>`;
@@ -301,43 +300,28 @@
     }
 
     function updateL3() { 
-        const l1 = document.getElementById('l1Filter').value; 
         const l2 = document.getElementById('l2Filter').value; 
         const s = document.getElementById('l3Filter'); 
         s.innerHTML = '<option value="">三级类目(全部)</option>'; 
-        const l3Values = [...new Set(products.filter(p => (!l1 || p[5] === l1) && (!l2 || p[6] === l2)).map(p => mapData(p).l3))].filter(v => v);
+        const l3Values = [...new Set(products.filter(p => (!l2 || mapData(p).l2 === l2)).map(p => mapData(p).l3))].filter(v => v);
         l3Values.forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
     }
 
     function updateL4() { 
-        const l1 = document.getElementById('l1Filter').value; 
-        const l2 = document.getElementById('l2Filter').value;
         const l3 = document.getElementById('l3Filter').value; 
         const s = document.getElementById('l4Filter'); 
         s.innerHTML = '<option value="">四级类目(全部)</option>'; 
-        const l4Values = [...new Set(products.filter(p => (!l1 || p[5] === l1) && (!l2 || p[6] === l2) && (!l3 || mapData(p).l3 === l3)).map(p => mapData(p).l4))].filter(v => v);
+        const l4Values = [...new Set(products.filter(p => (!l3 || mapData(p).l3 === l3)).map(p => mapData(p).l4))].filter(v => v);
         l4Values.forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
-    }
-
-    function updateL2() { 
-        const l1 = document.getElementById('l1Filter').value; 
-        const s = document.getElementById('l2Filter'); 
-        s.innerHTML = '<option value="">二级类目(全部)</option>'; 
-        [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
-        document.getElementById('l3Filter').innerHTML = '<option value="">三级类目(全部)</option>';
-        document.getElementById('l4Filter').innerHTML = '<option value="">四级类目(全部)</option>';
     }
 
     function resetFilters() {
         document.getElementById('searchInput').value = '';
-        document.getElementById('l1Filter').value = '';
         document.getElementById('l2Filter').value = '';
         document.getElementById('l3Filter').value = '';
         document.getElementById('l4Filter').value = '';
-        document.getElementById('pFilter').value = '';
-        document.getElementById('tagFilter').value = '';
-        document.getElementById('poolTagFilter').value = '';       // 新增
-        document.getElementById('priceSourceFilter').value = '';  // 新增
+        document.getElementById('poolTagFilter').value = '';
+        document.getElementById('priceSourceFilter').value = '';
         document.getElementById('targetPriceFilter').value = '';
         document.getElementById('highPriceFilter').value = '';
         document.getElementById('minPrice').value = '';
@@ -353,7 +337,7 @@
     };
     window.onload = loadData;
 </script>
-<footer style="text-align:center; color:#86868b; font-size:11px; margin-top:80px; padding:40px;">
+<footer style="text-align:center; color:#86868b; font-size: 11px; margin-top:80px; padding:40px;">
     <div>Designed by Ethan Cai</div>
     <div>ethan.cai02@shopee.com</div>
 </footer>
