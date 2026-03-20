@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Kaylin测试用</title>
+    <title>母婴&玩具类目-VMI最新机会商品</title>
     <style>
         body { font-family: 'PingFang SC', sans-serif; background: #f4f4f7; color: #333; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -56,8 +56,12 @@
     </header>
     <div class="filter-section">
         <input type="text" id="searchInput" placeholder="搜索标题/邀请ID" oninput="debouncedFilter()">
-        <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">二级类目(全部)</option></select>
-        <select id="l2Filter" onchange="applyFilters()"><option value="">三级类目(全部)</option></select>
+        <select id="l1Filter" onchange="updateL2(); updateL3(); applyFilters()"><option value="">二级类目(全部)</option></select>
+        <select id="l2Filter" onchange="updateL3(); applyFilters()"><option value="">三级类目(全部)</option></select>
+        
+        <!-- 👇 新增：四级类目筛选器（和三级完全一样逻辑） -->
+        <select id="l3Filter" onchange="applyFilters()"><option value="">四级类目(全部)</option></select>
+
         <select id="pFilter" onchange="applyFilters()"><option value="">参考价依据(全部)</option><option value="1688三档价">1688三档价</option><option value="爆品竞价">爆品竞价</option></select>
         <select id="tagFilter" onchange="applyFilters()"><option value="">更新时间(全部)</option></select>
         <select id="priceRangeFilter" onchange="applyFilters()">
@@ -77,7 +81,7 @@
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
         <select id="sortOrder" onchange="applyFilters()">
-            <option value="default">默认排序</option>
+            <option value="">默认排序</option>
             <option value="priceAsc">价格升序</option>
             <option value="priceDesc">价格降序</option>
         </select>
@@ -133,6 +137,7 @@
             link: arr[4],
             l1: arr[5],
             l2: arr[6],
+            l3: arr[16] || "", // 新增：四级类目
             inviteId: cleanId(arr[7]),
             modelId: cleanId(arr[8]), 
             link1688: arr[9],
@@ -197,9 +202,13 @@ card.innerHTML = `
 
     function applyFilters() {
         const q = document.getElementById('searchInput').value.toLowerCase();
-        const l1 = document.getElementById('l1Filter').value, l2 = document.getElementById('l2Filter').value;
-        const p = document.getElementById('pFilter').value, tag = document.getElementById('tagFilter').value;
-        const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+        const l1 = document.getElementById('l1Filter').value;
+        const l2 = document.getElementById('l2Filter').value;
+        const l3 = document.getElementById('l3Filter').value; // 新增：四级类目
+        const p = document.getElementById('pFilter').value;
+        const tag = document.getElementById('tagFilter').value;
+        const min = parseFloat(document.getElementById('minPrice').value) || 0;
+        const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         const priceRange = document.getElementById('priceRangeFilter').value;
         const priceLevel = document.getElementById('modelCountFilter').value;
 
@@ -224,8 +233,12 @@ card.innerHTML = `
             }
 
             return (i.title.toLowerCase().includes(q) || i.inviteId.toLowerCase().includes(q)) &&
-                   (!l1 || i.l1 === l1) && (!l2 || i.l2 === l2) && (!p || i.judge === p) && 
-                   (!tag || i.specialTag === tag) && (i.price >= min && i.price <= max) && 
+                   (!l1 || i.l1 === l1) && 
+                   (!l2 || i.l2 === l2) && 
+                   (!l3 || i.l3 === l3) &&  // 新增：四级类目筛选
+                   (!p || i.judge === p) && 
+                   (!tag || i.specialTag === tag) && 
+                   (i.price >= min && i.price <= max) && 
                    isInPriceRange && isMatchPriceLevel;
         });
         
@@ -241,33 +254,48 @@ card.innerHTML = `
         document.getElementById('searchInput').value = '';
         document.getElementById('l1Filter').value = '';
         document.getElementById('l2Filter').value = '';
+        document.getElementById('l3Filter').value = ''; // 新增：重置四级
         document.getElementById('pFilter').value = '';
         document.getElementById('tagFilter').value = '';
         document.getElementById('priceRangeFilter').value = '';
         document.getElementById('modelCountFilter').value = '';
         document.getElementById('minPrice').value = '';
         document.getElementById('maxPrice').value = '';
-        document.getElementById('sortOrder').value = 'default';
+        document.getElementById('sortOrder').value = '';
         updateL2();
+        updateL3();
         applyFilters();
     }
 
-    // 👇 这里自动加载价格档位，和 tagFilter 完全一样
     function initFilters() {
         [...new Set(products.map(p => p[5]))].forEach(v => { if(v) document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
         [...new Set(products.map(p => p[14]?.trim()).filter(v => v))].forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
-        
-        // 自动加载 CSV 中 arr[15] 的所有不重复值
         [...new Set(products.map(p => p[15]?.trim()).filter(v => v))].forEach(v => { 
             document.getElementById('modelCountFilter').innerHTML += `<option value="${v}">${v}</option>`; 
         });
     }
 
+    // 三级类目联动
     function updateL2() { 
         const l1 = document.getElementById('l1Filter').value; 
         const s = document.getElementById('l2Filter'); 
         s.innerHTML = '<option value="">三级类目(全部)</option>'; 
         [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
+        updateL3();
+    }
+
+    // 👇 新增：四级类目联动（和三级完全一样逻辑）
+    function updateL3() { 
+        const l1 = document.getElementById('l1Filter').value;
+        const l2 = document.getElementById('l2Filter').value;
+        const s = document.getElementById('l3Filter'); 
+        s.innerHTML = '<option value="">四级类目(全部)</option>'; 
+        
+        let list = products;
+        if(l1) list = list.filter(p => p[5] === l1);
+        if(l2) list = list.filter(p => p[6] === l2);
+        
+        [...new Set(list.map(p => p[16]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
     }
     
     let timer; 
