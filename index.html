@@ -216,6 +216,10 @@ card.innerHTML = `
         const l1 = document.getElementById('l1Filter').value, l2 = document.getElementById('l2Filter').value;
         const p = document.getElementById('pFilter').value, tag = document.getElementById('tagFilter').value;
         const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+        
+        // 新增：型号数量筛选值
+        const modelCount = document.getElementById('modelCountFilter').value;
+        
         // 新增：处理价格段筛选逻辑
         const priceRange = document.getElementById('priceRangeFilter').value;
         let minRange = 0, maxRange = Infinity;
@@ -255,7 +259,7 @@ card.innerHTML = `
         document.getElementById('pFilter').value = '';
         document.getElementById('tagFilter').value = '';
         document.getElementById('priceRangeFilter').value = ''; // 重置价格段   
-        document.getElementById('modelCountFilter').value = '';// 新增：重置型号数量筛选
+        document.getElementById('modelCountFilter').value = '';// 新增：重置低中高价位筛选
         document.getElementById('minPrice').value = '';
         document.getElementById('maxPrice').value = '';
         document.getElementById('sortOrder').value = 'default';
