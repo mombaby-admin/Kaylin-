@@ -73,11 +73,15 @@
             <option value="50+">50+</option>
         </select>
 
-        <!-- 价格档位（自动加载CSV内容） -->
+        
+        <!-- 暂时隐藏掉，该筛选框对应左下角的tag -->
+        <!-- 
         <select id="modelCountFilter" onchange="applyFilters()">
             <option value="">待定筛选框</option>
         </select>
+        -->
 
+        
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
         <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
         <select id="sortOrder" onchange="applyFilters()">
