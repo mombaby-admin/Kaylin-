@@ -10,7 +10,6 @@
         .desc-box { background: rgba(255,255,255,0.2); padding: 10px; margin-top: 10px; border-radius: 4px; font-size: 14px; line-height: 1.6; }
         .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        /* 重置按钮样式 */
         .reset-btn { 
             padding: 8px 16px; 
             background: #fff; 
@@ -70,12 +69,9 @@
             <option value="50+">50+</option>
         </select>
 
-        <!-- 👇 你要的 价格档位筛选 已替换完成 -->
+        <!-- 价格档位（自动加载CSV内容） -->
         <select id="modelCountFilter" onchange="applyFilters()">
             <option value="">价格档位(全部)</option>
-            <option value="低价品">低价品</option>
-            <option value="中价品">中价品</option>
-            <option value="高价品">高价品</option>
         </select>
 
         <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
@@ -101,8 +97,6 @@
         }
     };
 
-    console.log("%c⚠️ 发现非法查看源码行为", "color: red; font-size: 20px; font-weight: bold;");
-    console.log("Designed by Ethan Cai. 复制前请联系原作者。");
     let products = [], filteredData = [], currentPage = 1;
     const pageSize = 40;
     const cleanId = (str) => {
@@ -145,7 +139,7 @@
             judge: arr[10],
             date: arr[11],
             specialTag: arr[14] || "",
-            modelCount: arr[15] || "1"
+            modelCount: arr[15] || ""
         };
     };
 
@@ -207,16 +201,13 @@ card.innerHTML = `
         const p = document.getElementById('pFilter').value, tag = document.getElementById('tagFilter').value;
         const min = parseFloat(document.getElementById('minPrice').value) || 0, max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
         const priceRange = document.getElementById('priceRangeFilter').value;
-        
-        // 👇 你要的筛选逻辑已完全替换
         const priceLevel = document.getElementById('modelCountFilter').value;
 
         let minRange = 0, maxRange = Infinity;
         if (priceRange) {
             const [start, end] = priceRange.split('-');
             if (priceRange === '50+') {
-                minRange = 50;
-                maxRange = Infinity;
+                minRange = 50; maxRange = Infinity;
             } else {
                 minRange = parseFloat(start) || 0;
                 maxRange = parseFloat(end) || Infinity;
@@ -227,7 +218,6 @@ card.innerHTML = `
             const i = mapData(arr);
             const isInPriceRange = i.price >= minRange && i.price <= maxRange;
             
-            // 👇 直接匹配 CSV 里的 低价品/中价品/高价品
             let isMatchPriceLevel = true;
             if (priceLevel) {
                 isMatchPriceLevel = i.modelCount === priceLevel;
@@ -262,9 +252,15 @@ card.innerHTML = `
         applyFilters();
     }
 
+    // 👇 这里自动加载价格档位，和 tagFilter 完全一样
     function initFilters() {
         [...new Set(products.map(p => p[5]))].forEach(v => { if(v) document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
         [...new Set(products.map(p => p[14]?.trim()).filter(v => v))].forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
+        
+        // 自动加载 CSV 中 arr[15] 的所有不重复值
+        [...new Set(products.map(p => p[15]?.trim()).filter(v => v))].forEach(v => { 
+            document.getElementById('modelCountFilter').innerHTML += `<option value="${v}">${v}</option>`; 
+        });
     }
 
     function updateL2() { 
@@ -282,7 +278,5 @@ card.innerHTML = `
     <div>Designed by Ethan Cai</div>
     <div>ethan.cai02@shopee.com</div>
 </footer>
-<div id="author-tag" onclick="this.style.display='none'" style="display:none; position:fixed; top:20px; right:20px; background:white; padding:6px 10px; border-radius:12px; z-index:9999;">🚀 祝老板早日爆单，财源滚滚！</div>
-<div onclick="document.getElementById('author-tag').style.display='block'" style="width:120px; height:30px; margin:-40px auto 0; cursor:pointer;"></div>
 </body>
 </html>
