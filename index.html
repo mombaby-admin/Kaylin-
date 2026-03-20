@@ -130,7 +130,11 @@
                 r.push(cur.trim()); r.push(index);
                 return r;
             }).filter(a => a.length >= 12);
-            initFilters(); applyFilters();
+            initFilters();
+            // 初始化时直接加载所有三级、四级类目（不再依赖二级选中）
+            initL2Filter(); 
+            initL3Filter();
+            applyFilters();
         } catch (e) { console.error(e); }
     }
 
@@ -277,12 +281,14 @@ card.innerHTML = `
         document.getElementById('minPrice').value = '';
         document.getElementById('maxPrice').value = '';
         document.getElementById('sortOrder').value = '';
-        updateL2();
-        updateL3();
+        // 重置后重新加载所有三级、四级类目（不再依赖二级）
+        initL2Filter(); 
+        initL3Filter();
         applyFilters();
     }
 
     function initFilters() {
+        // 初始化二级类目
         [...new Set(products.map(p => p[5]))].forEach(v => { if(v) document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
         
         // 👇 【新增】自动加载 CSV 里的 arr[11] 到更新时间筛选器
@@ -290,22 +296,40 @@ card.innerHTML = `
             document.getElementById('dateFilter').innerHTML += `<option value="${v}">${v}</option>`;
         });
 
+        // 初始化价格档位筛选
         [...new Set(products.map(p => p[14]?.trim()).filter(v => v))].forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
+        // 初始化待定筛选框
         [...new Set(products.map(p => p[15]?.trim()).filter(v => v))].forEach(v => { 
             document.getElementById('modelCountFilter').innerHTML += `<option value="${v}">${v}</option>`; 
         });
     }
 
-    // 三级类目联动
+    // 【修改】初始化所有三级类目（不依赖二级选中）
+    function initL2Filter() {
+        const s = document.getElementById('l2Filter'); 
+        s.innerHTML = '<option value="">三级类目(全部)</option>'; 
+        [...new Set(products.map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
+    }
+
+    // 【修改】初始化所有四级类目（不依赖二级/三级选中）
+    function initL3Filter() {
+        const s = document.getElementById('l3Filter'); 
+        s.innerHTML = '<option value="">四级类目(全部)</option>'; 
+        [...new Set(products.map(p => p[16]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
+    }
+
+    // 【修改】三级类目联动逻辑：选中二级时过滤，未选中时显示全部
     function updateL2() { 
         const l1 = document.getElementById('l1Filter').value; 
         const s = document.getElementById('l2Filter'); 
         s.innerHTML = '<option value="">三级类目(全部)</option>'; 
-        [...new Set(products.filter(p => !l1 || p[5] === l1).map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
+        // 如果选中了二级类目，过滤三级；否则显示所有三级
+        const list = l1 ? products.filter(p => p[5] === l1) : products;
+        [...new Set(list.map(p => p[6]))].forEach(v => { if(v) s.innerHTML += `<option value="${v}">${v}</option>`; }); 
         updateL3();
     }
 
-    // 👇 新增：四级类目联动（和三级完全一样逻辑）
+    // 【修改】四级类目联动逻辑：选中二级/三级时过滤，未选中时显示全部
     function updateL3() { 
         const l1 = document.getElementById('l1Filter').value;
         const l2 = document.getElementById('l2Filter').value;
@@ -313,6 +337,7 @@ card.innerHTML = `
         s.innerHTML = '<option value="">四级类目(全部)</option>'; 
         
         let list = products;
+        // 有二级选二级，有三级选三级，都没有显示全部
         if(l1) list = list.filter(p => p[5] === l1);
         if(l2) list = list.filter(p => p[6] === l2);
         
