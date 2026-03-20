@@ -56,31 +56,38 @@
 💹价格有问题： 点击左上角“1688三档价”查看核价链接，联系买手申诉。</div>
     </header>
     <div class="filter-section">
-        <input type="text" id="searchInput" placeholder="搜索标题/邀请ID" oninput="debouncedFilter()">
-        <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">二级类目(全部)</option></select>
-        <select id="l2Filter" onchange="applyFilters()"><option value="">三级类目(全部)</option></select>
-        <select id="pFilter" onchange="applyFilters()"><option value="">参考价依据(全部)</option><option value="1688三档价">1688三档价</option><option value="爆品竞价">爆品竞价</option></select>
-        <select id="tagFilter" onchange="applyFilters()"><option value="">更新时间(全部)</option></select>
-        <!-- 新增：目标价格段筛选 -->
-        <select id="priceRangeFilter" onchange="applyFilters()">
-            <option value="">目标价格段(全部)</option>
-            <option value="0-5">0-5</option>
-            <option value="5-10">5-10</option>
-            <option value="10-20">10-20</option>
-            <option value="20-50">20-50</option>
-            <option value="50+">50+</option>
-        </select>
-        <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
-        <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
-        <select id="sortOrder" onchange="applyFilters()">
-            <option value="default">默认排序</option>
-            <option value="priceAsc">价格升序</option>
-            <option value="priceDesc">价格降序</option>
-        </select>
-        <!-- 新增：重置筛选按钮 -->
-        <button class="reset-btn" onclick="resetFilters()">重置筛选</button>
-        <span id="countDisplay" style="font-weight:bold; color:#ee4d2d; margin-left:auto;"></span>
-    </div>
+    <input type="text" id="searchInput" placeholder="搜索标题/邀请ID" oninput="debouncedFilter()">
+    <select id="l1Filter" onchange="updateL2(); applyFilters()"><option value="">二级类目(全部)</option></select>
+    <select id="l2Filter" onchange="applyFilters()"><option value="">三级类目(全部)</option></select>
+    <select id="pFilter" onchange="applyFilters()"><option value="">参考价依据(全部)</option><option value="1688三档价">1688三档价</option><option value="爆品竞价">爆品竞价</option></select>
+    <select id="tagFilter" onchange="applyFilters()"><option value="">更新时间(全部)</option></select>
+    <!-- 新增：目标价格段筛选 -->
+    <select id="priceRangeFilter" onchange="applyFilters()">
+        <option value="">目标价格段(全部)</option>
+        <option value="0-5">0-5</option>
+        <option value="5-10">5-10</option>
+        <option value="10-20">10-20</option>
+        <option value="20-50">20-50</option>
+        <option value="50+">50+</option>
+    </select>
+    <!-- 新增：型号数量筛选（对应 mapData 里 modelCount: arr[15]） -->
+    <select id="modelCountFilter" onchange="applyFilters()">
+        <option value="">归属价位(全部)</option>
+        <option value="低价品">低价品</option>
+        <option value="中价品">中价品</option>
+        <option value="高价品">高价品</option>
+    </select>
+    <input type="number" id="minPrice" placeholder="最低价" oninput="debouncedFilter()">
+    <input type="number" id="maxPrice" placeholder="最高价" oninput="debouncedFilter()">
+    <select id="sortOrder" onchange="applyFilters()">
+        <option value="default">默认排序</option>
+        <option value="priceAsc">价格升序</option>
+        <option value="priceDesc">价格降序</option>
+    </select>
+    <!-- 新增：重置筛选按钮 -->
+    <button class="reset-btn" onclick="resetFilters()">重置筛选</button>
+    <span id="countDisplay" style="font-weight:bold; color:#ee4d2d; margin-left:auto;"></span>
+</div>
     <div class="product-grid" id="productGrid"></div>
     <div style="margin:20px; text-align:center;" id="pagination"></div>
 </div>
@@ -247,7 +254,8 @@ card.innerHTML = `
         document.getElementById('l2Filter').value = '';
         document.getElementById('pFilter').value = '';
         document.getElementById('tagFilter').value = '';
-        document.getElementById('priceRangeFilter').value = ''; // 重置价格段
+        document.getElementById('priceRangeFilter').value = ''; // 重置价格段   
+        document.getElementById('modelCountFilter').value = '';// 新增：重置型号数量筛选
         document.getElementById('minPrice').value = '';
         document.getElementById('maxPrice').value = '';
         document.getElementById('sortOrder').value = 'default';
