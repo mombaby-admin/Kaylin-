@@ -63,6 +63,10 @@
         <select id="l3Filter" onchange="applyFilters()"><option value="">四级类目(全部)</option></select>
 
         <select id="pFilter" onchange="applyFilters()"><option value="">参考价依据(全部)</option><option value="1688三档价">1688三档价</option><option value="爆品竞价">爆品竞价</option></select>
+        
+        <!-- 👇 【新增】更新时间筛选器（和参考价依据逻辑完全一致） -->
+        <select id="dateFilter" onchange="applyFilters()"><option value="">更新时间(全部)</option></select>
+
         <select id="tagFilter" onchange="applyFilters()"><option value="">价格档位(全部)</option></select>
         <select id="priceRangeFilter" onchange="applyFilters()">
             <option value="">目标价格段(全部)</option>
@@ -208,6 +212,7 @@ card.innerHTML = `
         const l2 = document.getElementById('l2Filter').value;
         const l3 = document.getElementById('l3Filter').value; // 新增：四级类目
         const p = document.getElementById('pFilter').value;
+        const dateFilter = document.getElementById('dateFilter').value; // 新增：更新时间
         const tag = document.getElementById('tagFilter').value;
         const min = parseFloat(document.getElementById('minPrice').value) || 0;
         const max = parseFloat(document.getElementById('maxPrice').value) || Infinity;
@@ -239,6 +244,7 @@ card.innerHTML = `
                    (!l2 || i.l2 === l2) && 
                    (!l3 || i.l3 === l3) &&  // 新增：四级类目筛选
                    (!p || i.judge === p) && 
+                   (!dateFilter || i.date === dateFilter) && // 新增：更新时间筛选
                    (!tag || i.specialTag === tag) && 
                    (i.price >= min && i.price <= max) && 
                    isInPriceRange && isMatchPriceLevel;
@@ -258,6 +264,7 @@ card.innerHTML = `
         document.getElementById('l2Filter').value = '';
         document.getElementById('l3Filter').value = ''; // 新增：重置四级
         document.getElementById('pFilter').value = '';
+        document.getElementById('dateFilter').value = ''; // 新增：重置更新时间
         document.getElementById('tagFilter').value = '';
         document.getElementById('priceRangeFilter').value = '';
         document.getElementById('modelCountFilter').value = '';
@@ -271,6 +278,12 @@ card.innerHTML = `
 
     function initFilters() {
         [...new Set(products.map(p => p[5]))].forEach(v => { if(v) document.getElementById('l1Filter').innerHTML += `<option value="${v}">${v}</option>`; });
+        
+        // 👇 【新增】自动加载 CSV 里的 arr[11] 到更新时间筛选器
+        [...new Set(products.map(p => p[11]?.trim()).filter(v => v))].forEach(v => {
+            document.getElementById('dateFilter').innerHTML += `<option value="${v}">${v}</option>`;
+        });
+
         [...new Set(products.map(p => p[14]?.trim()).filter(v => v))].forEach(v => { document.getElementById('tagFilter').innerHTML += `<option value="${v}">${v}</option>`; });
         [...new Set(products.map(p => p[15]?.trim()).filter(v => v))].forEach(v => { 
             document.getElementById('modelCountFilter').innerHTML += `<option value="${v}">${v}</option>`; 
@@ -304,7 +317,7 @@ card.innerHTML = `
     const debouncedFilter = () => { clearTimeout(timer); timer = setTimeout(applyFilters, 300); };
     window.onload = loadData;
 </script>
-<footer style="text-align:center; color:#86868b; font-size:11px; margin-top:80px; padding:40px;">
+<footer style="text-align:center; color:#86868b; font-size: 11px; margin-top:80px; padding:40px;">
     <div>Designed by Ethan Cai</div>
     <div>ethan.cai02@shopee.com</div>
 </footer>
