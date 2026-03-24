@@ -197,7 +197,7 @@ card.innerHTML = `
         </div>
         <div class="invite-row">
             <div class="model-count-tag">${item.l2}</div>
-            <div class="invite-id-box" onclick="navigator.clipboard.writeText('${item.inviteId}'); alert('已复制ID: ${item.inviteId}')">${item.inviteId}</div>
+            <div class="invite-id-box" onclick="copyInviteId(this, '${item.inviteId}')">${item.inviteId}</div>  
         </div>
         <div class="footer-row">
             <span>${item.date}</span>
@@ -360,6 +360,30 @@ card.innerHTML = `
         document.getElementById('modalImg').src = imgUrl;
         document.getElementById('imageModal').style.display = 'flex';
     }
+
+    // 复制邀请ID，无弹窗，3秒自动恢复
+    function copyInviteId(el, inviteId) {
+        // 复制到剪贴板
+        navigator.clipboard.writeText(inviteId);
+    
+        // 保存原来的样式和文字
+        const originalText = el.innerText;
+        const originalBg = el.style.background;
+        const originalColor = el.style.color;
+    
+        // 改为已复制样式（渐变浅绿色）
+        el.style.background = "linear-gradient(90deg, #d4edda, #a8e6cf)";
+        el.style.color = "#2e7d32";
+        el.innerText = "已复制";
+    
+        // 3秒后恢复原样
+        setTimeout(() => {
+            el.innerText = originalText;
+            el.style.background = originalBg;
+            el.style.color = originalColor;
+        }, 3000);
+    }
+    
 
 
     
