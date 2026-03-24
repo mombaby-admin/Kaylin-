@@ -361,28 +361,35 @@ card.innerHTML = `
         document.getElementById('imageModal').style.display = 'flex';
     }
 
-    // 复制邀请ID，无弹窗，3秒自动恢复
-    function copyInviteId(el, inviteId) {
-        // 复制到剪贴板
-        navigator.clipboard.writeText(inviteId);
-    
-        // 保存原来的样式和文字
-        const originalText = el.innerText;
-        const originalBg = el.style.background;
-        const originalColor = el.style.color;
-    
-        // 改为已复制样式（渐变浅绿色）
-        el.style.background = "linear-gradient(90deg, #d4edda, #a8e6cf)";
-        el.style.color = "#2e7d32";
-        el.innerText = "已复制";
-    
-        // 1秒后恢复原样
-        setTimeout(() => {
-            el.innerText = originalText;
-            el.style.background = originalBg;
-            el.style.color = originalColor;
-        }, 1000);
+    // 复制邀请ID - 修复多次点击无法复原问题
+function copyInviteId(el, inviteId) {
+    // 1. 先清除上一次的定时器（防止叠加）
+    if (el.copyTimer) clearTimeout(el.copyTimer);
+
+    // 2. 执行复制
+    navigator.clipboard.writeText(inviteId);
+
+    // 3. 保存原始样式（只保存一次）
+    if (!el.originalStyle) {
+        el.originalStyle = {
+            text: el.innerText,
+            bg: el.style.background,
+            color: el.style.color
+        };
     }
+
+    // 4. 设置复制成功样式
+    el.style.background = "linear-gradient(90deg, #d4edda, #a8e6cf)";
+    el.style.color = "#2e7d32";
+    el.innerText = "已复制";
+
+    // 5. 1秒后恢复（每次都重新计时）
+    el.copyTimer = setTimeout(() => {
+        el.innerText = el.originalStyle.text;
+        el.style.background = el.originalStyle.bg;
+        el.style.color = el.originalStyle.color;
+    }, 1000);
+}
     
 
 
