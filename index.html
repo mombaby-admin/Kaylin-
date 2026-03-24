@@ -106,7 +106,18 @@
 <div id="imageModal" onclick="this.style.display='none'"><img id="modalImg" src=""></div>
 
 <script>
-    document.oncontextmenu = () => false;
+    // 全局禁用右键（只允许图片）
+    document.oncontextmenu = (e) => {
+        const target = e.target;
+        // 只有 <img> 标签允许右键
+        if (target.tagName === 'IMG') {
+            return true;
+        }
+        // 其他全部禁止
+        return false;
+    };
+
+    
     document.onkeydown = (e) => {
         if (e.keyCode === 123 || (e.ctrlKey && e.shiftKey && e.keyCode === 73) || (e.ctrlKey && e.keyCode === 85)) {
             return false;
