@@ -376,12 +376,12 @@ card.innerHTML = `
         el.style.color = "#2e7d32";
         el.innerText = "已复制";
     
-        // 3秒后恢复原样
+        // 1秒后恢复原样
         setTimeout(() => {
             el.innerText = originalText;
             el.style.background = originalBg;
             el.style.color = originalColor;
-        }, 1500);
+        }, 1000);
     }
     
 
